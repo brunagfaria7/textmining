@@ -82,6 +82,12 @@ with open("vectorizer.pkl", 'rb') as f:
 with open("doc_matrix.pkl", 'rb') as f:
     doc_matrix = pickle.load(f)
 
+
+st.image("mtsamples.png")
+
+st.write("A search engine designed to find and retrieve medical transcriptions from mtsamples.com.\n")
+
+
 search = st.text_input("Search medical transcriptions")
 col1, col2 = st.columns([2,1])
 with col2:
