@@ -105,19 +105,20 @@ with tab2:
     with col3:    
         age = st.selectbox("Age Range",("Child", "Adult"), index = None)    
 
-    results = df
-    if speciality:
-        results = results[(results.Speciality == speciality)]
-    if gender:
-        results = results[(results.Gender == gender)]
-    if age:
-        results = results[ (results.Age_Range == age)]
+    with st.button("Get transcriptions"):
+        results = df
+        if speciality:
+            results = results[(results.Speciality == speciality)]
+        if gender:
+            results = results[(results.Gender == gender)]
+        if age:
+            results = results[ (results.Age_Range == age)]
 
-    # results
-    results_index = []
-    for row in results.iterrows():
-        results_index.append(row[0])
-    
-    for row in results_index:
-        row = df.iloc[row]
-        st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
+        st.write("Transcriptions")
+        results_index = []
+        for row in results.iterrows():
+            results_index.append(row[0])
+        
+        for row in results_index:
+            row = df.iloc[row]
+            st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
