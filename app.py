@@ -2,31 +2,7 @@ import streamlit as st
 import pandas as pd
 import re
 import pickle
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-def retrieve_documents(query, vect, doc_matrix, top_k=5, threshold=0.12):
-    # Vetor da query
-    query_vector = vect.transform(query)
-
-    # Similaridade por cosseno
-    similarity_scores = cosine_similarity(doc_matrix, query_vector).flatten()
-
-    # Índices dos documentos relevantes
-    idx_relevant_docs = similarity_scores.argsort()[::-1][:top_k]
-
-    # Filtrar por limiar
-    results = []
-    for i in idx_relevant_docs:
-        if similarity_scores[i] > threshold:
-            results.append(
-                {
-                    "Document": i,
-                    "Score": similarity_scores[i],
-                }
-            )
-    return results
+from utils import * 
 
 
 def get_drugs_list(drugs):
@@ -48,12 +24,23 @@ def result(row):
     drugs = row["Drugs"]
     speciality = row["Speciality"]
     diseases = row["Diseases"]
-
+    if type(row["Age"]) == str and type(row["Age_Range"]) == str:
+        age = row["Age"] + " / " + row["Age_Range"]
+    elif type(row["Age"]) == str:
+        age = row["Age"]
+    elif type(row["Age_Range"]) == str:
+        age = row["Age_Range"]
+    else:
+        age = " - "
+    if type(row["Gender"]) == str: 
+        gender = row["Gender"]
+    else:
+        gender = " - "
     tab1, tab2, tab3 = st.tabs(["Info", "Transcription", "Definitions"])
     with tab1:
         st.markdown("**Speciality:** " + speciality)
-        st.markdown("**Age**: -")
-        st.markdown("**Gender**: -")
+        st.markdown("**Age**: " + age)
+        st.markdown("**Gender**: " + gender)
         st.markdown("**Drugs:** " + get_drugs_list(drugs))
         st.markdown("**Diseases:** " + get_diseases_list(diseases))
         # for disease in get_diseases_list(diseases).split(", "):
@@ -66,8 +53,9 @@ def result(row):
     
     with tab3:
         doencas = get_diseases_list(diseases).split(",")
-        for d in doencas:
-            dfselect = diseasesDF[diseasesDF["Name"] == d.strip().lower()]
+        doencas = [d.strip().lower() for d in doencas]
+        for d in set(doencas):
+            dfselect = diseasesDF[diseasesDF["Name"] == d]
             if dfselect.size > 0:
                 if type(dfselect.Definition.values[0]) == str:
                     st.markdown("**" + d.strip().lower() + "**: *" + dfselect.Definition.values[0] + "*")  
@@ -85,26 +73,47 @@ with open("doc_matrix.pkl", 'rb') as f:
 
 st.image("mtsamples.png")
 
-st.write("A search engine designed to find and retrieve medical transcriptions from mtsamples.com.\n")
+tab1, tab2 = st.tabs(["Search","All Transcriptions"])
+
+with tab1:
+    st.write("A search engine designed to find and retrieve medical transcriptions from mtsamples.com.\n")
 
 
-search = st.text_input("Search medical transcriptions")
-col1, col2 = st.columns([2,1])
-with col2:
-    with st.expander("Filter"):
-        top_k = st.slider("Number of results", 1, 10, 5)
+    search = st.text_input("Search medical transcriptions")
+    col1, col2 = st.columns([2,1])
+    with col2:
+        with st.expander("Filter"):
+            top_k = st.slider("Number of results", 1, 10, 5)
 
-if search:
-    st.markdown("*Show first " + str(top_k) +  " results.*")
-    results = retrieve_documents([search], vect,doc_matrix, top_k)
-    for r in results:
-        row = df.iloc[r["Document"]]
+    if search:
+        results = retrieve_documents([search], vect,doc_matrix, top_k)
+        if results != []:
+            st.markdown("*Show first " + str(top_k) +  " results.*")
+        else:
+            st.markdown("*There's no result for this search. Please try again with more information.*")
+        for r in results:
+            row = df.iloc[r["Document"]]
 
-        st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
-        
-    # row = df[df.Speciality == search].head(10)
-    # for index, r in row.iterrows():
-    #     st.button(str(r["ID"]) + " - " +r["Speciality"], on_click=result, args=[r])
+            st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
+            
+with tab2:
+    speciality = st.selectbox("Speciality",df.Speciality.unique(), index = None )
+    gender = st.selectbox("Gender",("Male", "Female"), index = None)
+    age = st.selectbox("Age Range",("Child", "Adult"), index = None)    
+
+    results = df
+    if speciality:
+        results = results[(results.Speciality == speciality)]
+    if gender:
+        results = results[(results.Gender == gender)]
+    if age:
+        results = results[ (results.Age_Range == age)]
+
+    # results
+    results_index = []
+    for row in results.iterrows():
+        results_index.append(row[0])
     
-
-        
+    for row in results_index:
+        row = df.iloc[row]
+        st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
