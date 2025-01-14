@@ -97,9 +97,13 @@ with tab1:
             st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
             
 with tab2:
-    speciality = st.selectbox("Speciality",df.Speciality.unique(), index = None )
-    gender = st.selectbox("Gender",("Male", "Female"), index = None)
-    age = st.selectbox("Age Range",("Child", "Adult"), index = None)    
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1:
+        speciality = st.selectbox("Speciality",df.Speciality.unique(), index = None )
+    with col2:
+        gender = st.selectbox("Gender",("Male", "Female"), index = None)
+    with col3:    
+        age = st.selectbox("Age Range",("Child", "Adult"), index = None)    
 
     results = df
     if speciality:
