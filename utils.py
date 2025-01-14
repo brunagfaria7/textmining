@@ -5,6 +5,7 @@ from nltk.tokenize import RegexpTokenizer,word_tokenize
 from nltk.corpus import stopwords
 from nltk import pos_tag
 from nltk.tokenize import wordpunct_tokenize
+import nltk
 
 nltk.download('stopwords')
 
