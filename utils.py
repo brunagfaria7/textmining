@@ -6,6 +6,9 @@ from nltk.corpus import stopwords
 from nltk import pos_tag
 from nltk.tokenize import wordpunct_tokenize
 
+nltk.download('stopwords')
+
+
 # Lista de stopwords personalizada (exclui pronomes pessoais relevantes)
 def get_custom_stopwords():
     stop_words = set(stopwords.words('english'))
