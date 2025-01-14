@@ -105,7 +105,7 @@ with tab2:
     with col3:    
         age = st.selectbox("Age Range",("Child", "Adult"), index = None)    
 
-    with st.button("Get transcriptions"):
+    if st.button("Get transcriptions"):
         results = df
         if speciality:
             results = results[(results.Speciality == speciality)]
