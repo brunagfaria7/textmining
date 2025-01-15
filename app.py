@@ -6,12 +6,13 @@ from utils import *
 
 
 def get_drugs_list(drugs):
-    if drugs != "set()":
+    print(drugs)
+    if type(drugs) == str:
         return re.sub(r'[{}"\']', '', drugs)
     return "-"
 
 def get_diseases_list(diseases):
-    if diseases != "set()":
+    if type(diseases) == str:
         return re.sub(r'[{}"\']', '', diseases)
     return "-"
 
@@ -43,9 +44,6 @@ def result(row):
         st.markdown("**Gender**: " + gender)
         st.markdown("**Drugs:** " + get_drugs_list(drugs))
         st.markdown("**Diseases:** " + get_diseases_list(diseases))
-        # for disease in get_diseases_list(diseases).split(", "):
-        #     st.markdown("- " + disease)
-       
 
     with tab2:
         for t in transcription.splitlines():
@@ -78,7 +76,6 @@ tab1, tab2 = st.tabs(["Search","All Transcriptions"])
 with tab1:
     st.write("A search engine designed to find and retrieve medical transcriptions from mtsamples.com.\n")
 
-
     search = st.text_input("Search medical transcriptions")
     col1, col2 = st.columns([2,1])
     with col2:
@@ -93,11 +90,11 @@ with tab1:
             st.markdown("*There's no result for this search. Please try again with more information.*")
         for r in results:
             row = df.iloc[r["Document"]]
-
-            st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
+            st.button(row["Sample Name"] + " - " +row["Speciality"], on_click=result, args=[row])
             
 with tab2:
     col1, col2, col3 = st.columns([1,1,1])
+
     with col1:
         speciality = st.selectbox("Speciality",df.Speciality.unique(), index = None )
     with col2:
@@ -105,20 +102,17 @@ with tab2:
     with col3:    
         age = st.selectbox("Age Range",("Child", "Adult"), index = None)    
 
-    if st.button("Get transcriptions"):
-        results = df
-        if speciality:
-            results = results[(results.Speciality == speciality)]
-        if gender:
-            results = results[(results.Gender == gender)]
-        if age:
-            results = results[ (results.Age_Range == age)]
-
+    if speciality or gender or age :
+        results2 = df[
+            (df.Speciality == speciality if speciality else True) &
+            (df.Gender == gender if gender else True) &
+            (df.Age_Range == age if age else True)
+        ]
         st.write("Transcriptions")
         results_index = []
-        for row in results.iterrows():
+        for row in results2.iterrows():
             results_index.append(row[0])
         
         for row in results_index:
             row = df.iloc[row]
-            st.button(str(row["ID"]) + " - " +row["Speciality"], on_click=result, args=[row])
+            st.button(row["Sample Name"] + " - " +row["Speciality"], on_click=result, args=[row])
